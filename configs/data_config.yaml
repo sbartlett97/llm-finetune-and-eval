@@ -1,0 +1,9 @@
+dataset_name: lavita/ChatDoctor-HealthCareMagic-100k
+train_size: 90000
+val_size: 5000
+test_size: 5000
+seed: 42
+max_length: 4096      # context window limit for filtering
+train_max_length: 1024  # truncation length for training efficiency
+min_input_tokens: 10
+min_output_tokens: 20

@@ -1,0 +1,58 @@
+services:
+  serving:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - MODEL_RUN_ID=${MODEL_RUN_ID:-run_lora_r16}
+      - MODEL_PATH=${MODEL_PATH:-}
+      - MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI:-http://mlflow:5000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ../checkpoints:/app/checkpoints
+      - ../mlruns:/app/mlruns
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    profiles: [serving, full]
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.13.0
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../mlruns:/mlruns
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri /mlruns
+    profiles: [full]
+
+  dashboard:
+    image: python:3.11-slim
+    working_dir: /app
+    command: >
+      bash -c "pip install streamlit plotly mlflow httpx pandas --quiet &&
+               streamlit run dashboard/app.py --server.port 8501 --server.address 0.0.0.0"
+    ports:
+      - "8501:8501"
+    environment:
+      - SERVING_URL=http://serving:8000
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ../dashboard:/app/dashboard
+      - ../mlruns:/app/mlruns
+    depends_on:
+      - serving
+      - mlflow
+    profiles: [full]

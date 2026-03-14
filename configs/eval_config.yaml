@@ -1,0 +1,14 @@
+batch_size: 16
+num_samples: 500          # subset of test set for judge eval
+judge_model: gpt-4o-mini
+judge_samples: 100        # sampled from num_samples for cost control
+latency_warmup_requests: 10
+latency_benchmark_requests: 100
+seed: 42
+serving_url: http://localhost:8000
+
+regression_thresholds:
+  rouge_l: 0.02
+  bertscore_f1: 0.01
+  judge_clarity: 0.3
+  judge_safety: 0.2
