@@ -52,6 +52,7 @@ class FineTuner:
             quantization_config=_build_bnb_config(),
             device_map="auto",
             trust_remote_code=True,
+            attn_implementation="flash_attention_2",
         )
         model.config.use_cache = False
         model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
@@ -74,6 +75,8 @@ class FineTuner:
             warmup_ratio=tc.warmup_ratio,
             max_grad_norm=tc.max_grad_norm,
             fp16=tc.fp16,
+            bf16=tc.bf16,
+            dataloader_num_workers=4,
             seed=tc.seed,
             logging_steps=tc.logging_steps,
             evaluation_strategy="steps",
@@ -93,6 +96,7 @@ class FineTuner:
             dataset_text_field="text",
             tokenizer=tokenizer,
             max_seq_length=1024,
+            packing=True,
             callbacks=[TensorBoardStepCallback(self.tracker)],
         )
 

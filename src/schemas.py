@@ -20,7 +20,8 @@ class TrainingConfig(BaseModel):
     lr_scheduler_type: str = "cosine"
     warmup_ratio: float = 0.03
     max_grad_norm: float = 1.0
-    fp16: bool = True
+    fp16: bool = False
+    bf16: bool = True
     seed: int = 42
     logging_steps: int = 10
     eval_steps: int = 500
