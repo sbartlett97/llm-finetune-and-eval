@@ -66,4 +66,4 @@ class TrainingResult:
     output_dir: str
     final_train_loss: float
     final_val_loss: float
-    mlflow_run_id: str
+    run_id: str

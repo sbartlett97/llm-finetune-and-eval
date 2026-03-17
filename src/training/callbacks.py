@@ -5,7 +5,7 @@ from transformers import TrainerCallback, TrainerControl, TrainerState, Training
 from src.tracking.experiment_tracker import ExperimentTracker
 
 
-class MLflowStepCallback(TrainerCallback):
+class TensorBoardStepCallback(TrainerCallback):
     def __init__(self, tracker: ExperimentTracker):
         self.tracker = tracker
 

@@ -53,20 +53,14 @@ class ModelLoader:
             return path
         if run_id := os.environ.get("MODEL_RUN_ID"):
             self.model_run_id = run_id
-            return self._path_from_mlflow(run_id)
+            checkpoint_dir = Path("checkpoints") / run_id
+            if not checkpoint_dir.exists():
+                raise RuntimeError(
+                    f"Checkpoint directory '{checkpoint_dir}' not found. "
+                    "Set MODEL_PATH to an explicit path or ensure the checkpoint exists."
+                )
+            return str(checkpoint_dir)
         raise RuntimeError("Set MODEL_PATH or MODEL_RUN_ID environment variable")
-
-    def _path_from_mlflow(self, run_id: str) -> str:
-        import mlflow
-        client = mlflow.tracking.MlflowClient()
-        runs = client.search_runs(
-            experiment_ids=[],
-            filter_string=f"tags.mlflow.runName = '{run_id}'",
-        )
-        if not runs:
-            raise RuntimeError(f"No MLflow run found with name '{run_id}'")
-        artifact_uri = runs[0].info.artifact_uri
-        return f"{artifact_uri}/model"
 
     def _load_lora(self, adapter_path: str) -> None:
         from peft import PeftModel

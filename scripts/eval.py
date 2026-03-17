@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--run-id", help="MLflow run name (e.g. run_lora_r16)")
+    group.add_argument("--run-id", help="Run name matching a directory under runs/ (e.g. run_lora_r16)")
     group.add_argument("--model-path", help="Local path to model checkpoint")
     parser.add_argument("--data-config", default="configs/data_config.yaml")
     parser.add_argument("--eval-config", default="configs/eval_config.yaml")

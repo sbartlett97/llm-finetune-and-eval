@@ -11,7 +11,7 @@ from trl import SFTTrainer
 
 from src.schemas import RunConfig
 from src.tracking.experiment_tracker import ExperimentTracker
-from src.training.callbacks import MLflowStepCallback
+from src.training.callbacks import TensorBoardStepCallback
 from src.training.lora_config import build_lora_config
 from src.types import TrainingResult
 
@@ -93,7 +93,7 @@ class FineTuner:
             dataset_text_field="text",
             tokenizer=tokenizer,
             max_seq_length=1024,
-            callbacks=[MLflowStepCallback(self.tracker)],
+            callbacks=[TensorBoardStepCallback(self.tracker)],
         )
 
         train_result = trainer.train()
@@ -108,7 +108,7 @@ class FineTuner:
             output_dir=output_dir,
             final_train_loss=final_train_loss,
             final_val_loss=final_val_loss,
-            mlflow_run_id=self.tracker.current_run_id or "",
+            run_id=self.tracker.current_run_id or "",
         )
 
     def save_checkpoint(self, output_dir: str) -> None:

@@ -183,12 +183,14 @@ bash scripts/run_all_experiments.sh
 
 > This runs all five experiments sequentially. Expect ~3–4 hours per training run on an A100 40GB.
 
-### View results in MLflow
+### View results in TensorBoard
 
 ```bash
-mlflow ui
-# Open http://localhost:5000
+tensorboard --logdir runs/
+# Open http://localhost:6006
 ```
+
+Each run is written to `runs/{run_name}/`. After training completes you can compare loss curves, eval metrics, and hyperparameters across all runs in the TensorBoard UI.
 
 ### Start the serving stack
 
@@ -304,9 +306,8 @@ HF_TOKEN=                    # HuggingFace token (Mistral is gated)
 OPENAI_API_KEY=              # GPT-4o-mini for LLM judge
 
 # Optional
-MLFLOW_TRACKING_URI=         # Default: ./mlruns
-MODEL_RUN_ID=run_lora_r16    # Which checkpoint the server loads
-MODEL_PATH=                  # Override: local path to model weights
+MODEL_RUN_ID=run_lora_r16    # Which checkpoint the server loads (resolves to checkpoints/{run_id}/)
+MODEL_PATH=                  # Override: explicit local path to model weights
 LOG_LEVEL=INFO
 ```
 
@@ -323,7 +324,7 @@ See `.env.example` for a full template.
 | Quantisation | `bitsandbytes` NF4 4-bit |
 | Automated metrics | `rouge_score`, `bert_score`, `sacrebleu` |
 | LLM judge | `langchain` + `langchain-openai` |
-| Experiment tracking | MLflow 2.x |
+| Experiment tracking | TensorBoard 2.x |
 | Inference serving | FastAPI + Uvicorn |
 | Containerisation | Docker + docker-compose |
 | Demo UI | Streamlit + Plotly |
