@@ -19,7 +19,7 @@ run_experiment() {
 }
 
 log "=== Baseline (no fine-tuning) ==="
-python scripts/eval.py --run-id run_baseline --model-path mistralai/Mistral-7B-Instruct-v0.2 \
+python scripts/eval.py --model-path mistralai/Mistral-7B-Instruct-v0.2 --run-name run_baseline \
     --eval-config "$EVAL_CONFIG" --data-config "$DATA_CONFIG"
 
 log "=== LoRA r=8 ==="

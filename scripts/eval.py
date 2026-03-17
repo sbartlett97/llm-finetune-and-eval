@@ -23,7 +23,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--run-id", help="Run name matching a directory under runs/ (e.g. run_lora_r16)")
-    group.add_argument("--model-path", help="Local path to model checkpoint")
+    group.add_argument("--model-path", help="Local or HuggingFace Hub path to model checkpoint")
+    parser.add_argument("--run-name", help="Override the eval run name (useful with --model-path)")
     parser.add_argument("--data-config", default="configs/data_config.yaml")
     parser.add_argument("--eval-config", default="configs/eval_config.yaml")
     args = parser.parse_args()
@@ -40,8 +41,8 @@ def main() -> None:
     data_module.setup()
     test_dataset = data_module.get_test_dataset()
 
-    run_id = args.run_id or Path(args.model_path).name
     model_path = args.model_path or f"./checkpoints/{args.run_id}"
+    run_id = args.run_name or args.run_id or Path(args.model_path).name
 
     tracker = ExperimentTracker()
     tracker.start_run(
