@@ -56,14 +56,15 @@ class MedicalQADataModule:
         )
         logger.info("Preprocessing stats: %s", self._preprocessing_stats)
 
+        total = self.config.train_size + self.config.val_size + self.config.test_size
+        assert len(raw) >= total, f"Dataset too small after filtering: {len(raw)} < {total}"
+
+        raw = raw.map(format_prompt)
+
         if split_indices_path and Path(split_indices_path).exists():
             self._load_splits_from_indices(raw, split_indices_path)
         else:
             self._create_splits(raw, split_indices_path)
-
-        raw = raw.map(format_prompt)
-        total = self.config.train_size + self.config.val_size + self.config.test_size
-        assert len(raw) >= total, f"Dataset too small after filtering: {len(raw)} < {total}"
 
     def _create_splits(self, dataset: Dataset, save_path: Optional[str]) -> None:
         test_val_size = self.config.val_size + self.config.test_size
