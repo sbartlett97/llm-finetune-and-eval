@@ -49,7 +49,7 @@ def main() -> None:
         data_module = MedicalQADataModule(data_config, tokenizer=tokenizer)
         data_module.setup()
 
-        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             stats = data_module.get_preprocessing_stats()
             json.dump(stats, f)
             tracker.log_artifact(f.name)
