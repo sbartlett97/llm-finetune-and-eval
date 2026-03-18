@@ -84,13 +84,12 @@ class ModelLoader:
         temperature: float = 0.7,
         top_p: float = 0.9,
     ) -> tuple[str, int]:
-        from src.data.preprocessing import PROMPT_TEMPLATE
+        from src.data.preprocessing import format_prompt_inference
 
-        prompt = PROMPT_TEMPLATE.format(input=question, output="")
-        prompt = prompt.rsplit("[/INST]", 1)[0] + "[/INST]"
+        prompt = format_prompt_inference(question, self.tokenizer)
 
         inputs = self.tokenizer(  # type: ignore[call-arg]
-            prompt, return_tensors="pt", truncation=True, max_length=512
+            prompt, return_tensors="pt", truncation=True, max_length=2048
         ).to(self.model.device)  # type: ignore[union-attr]
 
         with torch.no_grad():

@@ -68,16 +68,15 @@ def _generate_responses(
     questions: list[str],
     batch_size: int,
 ) -> list[str]:
-    from src.data.preprocessing import PROMPT_TEMPLATE
+    from src.data.preprocessing import format_prompt_inference
 
     responses: list[str] = []
     for i in range(0, len(questions), batch_size):
         batch_questions = questions[i : i + batch_size]
-        prompts = [PROMPT_TEMPLATE.format(input=q, output="") for q in batch_questions]
-        prompts_stripped = [p.rsplit("[/INST]", 1)[0] + "[/INST]" for p in prompts]
+        prompts = [format_prompt_inference(q, tokenizer) for q in batch_questions]
 
         inputs = tokenizer(  # type: ignore[call-arg]
-            prompts_stripped, return_tensors="pt", padding=True, truncation=True, max_length=512
+            prompts, return_tensors="pt", padding=True, truncation=True, max_length=2048
         ).to(model.device)  # type: ignore[union-attr]
 
         with torch.no_grad():

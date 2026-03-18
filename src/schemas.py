@@ -23,6 +23,8 @@ class TrainingConfig(BaseModel):
     fp16: bool = False
     bf16: bool = True
     seed: int = 42
+    max_seq_length: int = 1024
+    dataloader_num_workers: int = 4
     logging_steps: int = 10
     eval_steps: int = 500
     save_steps: int = 500
@@ -33,7 +35,7 @@ class TrainingConfig(BaseModel):
 
 class RunConfig(BaseModel):
     run_name: str
-    base_model: str = "mistralai/Mistral-7B-Instruct-v0.2"
+    base_model: str = "unsloth/SmolLM3-3B-128K"
     output_dir: str
     lora: LoraConfig = Field(default_factory=LoraConfig)
     training: TrainingConfig = Field(default_factory=TrainingConfig)

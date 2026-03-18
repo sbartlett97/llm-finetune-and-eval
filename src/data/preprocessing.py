@@ -3,10 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-PROMPT_TEMPLATE = (
-    "[INST] You are a medical assistant. Answer the following patient question clearly and safely.\n\n"
-    "{input} [/INST] {output}"
-)
+_SYSTEM_PROMPT = "You are a medical assistant. Answer the following patient question clearly and safely."
 
 _QUALITY_PATTERNS = re.compile(
     r"^(n/a|see (a )?doctor|see your doctor|consult (a |your )?doctor|not applicable)\.?$",
@@ -14,9 +11,22 @@ _QUALITY_PATTERNS = re.compile(
 )
 
 
-def format_prompt(record: dict[str, Any]) -> dict[str, Any]:
-    text = PROMPT_TEMPLATE.format(input=record["input"], output=record["output"])
+def format_prompt(record: dict[str, Any], tokenizer: Any) -> dict[str, Any]:
+    messages = [
+        {"role": "system", "content": _SYSTEM_PROMPT},
+        {"role": "user", "content": record["input"]},
+        {"role": "assistant", "content": record["output"]},
+    ]
+    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
     return {**record, "text": text}
+
+
+def format_prompt_inference(question: str, tokenizer: Any) -> str:
+    messages = [
+        {"role": "system", "content": _SYSTEM_PROMPT},
+        {"role": "user", "content": question},
+    ]
+    return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
 
 def passes_quality_filter(record: dict[str, Any]) -> bool:

@@ -6,12 +6,12 @@ lora:
   r: 16
   lora_alpha: 32
   lora_dropout: 0.05
-  target_modules: [q_proj, v_proj]
+  target_modules: [q_proj, k_proj, v_proj, o_proj]
   bias: none
   task_type: CAUSAL_LM
 
 training:
-  num_epochs: 1
+  num_epochs: 2
   per_device_train_batch_size: 8
   gradient_accumulation_steps: 2
   learning_rate: 2.0e-4
@@ -21,6 +21,8 @@ training:
   fp16: false
   bf16: true
   seed: 42
+  max_seq_length: 1024
+  dataloader_num_workers: 4
   logging_steps: 10
   eval_steps: 500
   save_steps: 500

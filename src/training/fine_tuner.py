@@ -76,7 +76,7 @@ class FineTuner:
             max_grad_norm=tc.max_grad_norm,
             fp16=tc.fp16,
             bf16=tc.bf16,
-            dataloader_num_workers=4,
+            dataloader_num_workers=tc.dataloader_num_workers,
             seed=tc.seed,
             logging_steps=tc.logging_steps,
             evaluation_strategy="steps",
@@ -95,7 +95,7 @@ class FineTuner:
             eval_dataset=self.val_dataset,
             dataset_text_field="text",
             tokenizer=tokenizer,
-            max_seq_length=1024,
+            max_seq_length=self.config.training.max_seq_length,
             packing=True,
             callbacks=[TensorBoardStepCallback(self.tracker)],
         )

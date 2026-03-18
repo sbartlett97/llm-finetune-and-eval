@@ -6,7 +6,7 @@ lora:
   r: 16
   lora_alpha: 32           # 2x rank
   lora_dropout: 0.05
-  target_modules: [q_proj, v_proj]
+  target_modules: [q_proj, k_proj, v_proj, o_proj]
   bias: none
   task_type: CAUSAL_LM
 
@@ -27,3 +27,5 @@ training:
   save_total_limit: 2
   load_best_model_at_end: true
   metric_for_best_model: eval_loss
+  max_seq_length: 1024
+  dataloader_num_workers: 4

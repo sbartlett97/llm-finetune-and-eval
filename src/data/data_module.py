@@ -59,7 +59,9 @@ class MedicalQADataModule:
         total = self.config.train_size + self.config.val_size + self.config.test_size
         assert len(raw) >= total, f"Dataset too small after filtering: {len(raw)} < {total}"
 
-        raw = raw.map(format_prompt)
+        if self.tokenizer is None:
+            raise RuntimeError("MedicalQADataModule requires a tokenizer for prompt formatting. Pass tokenizer= at construction.")
+        raw = raw.map(lambda r: format_prompt(r, self.tokenizer))
 
         if split_indices_path and Path(split_indices_path).exists():
             self._load_splits_from_indices(raw, split_indices_path)
