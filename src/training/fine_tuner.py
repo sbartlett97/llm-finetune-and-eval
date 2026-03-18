@@ -6,8 +6,8 @@ from pathlib import Path
 import torch
 from datasets import Dataset
 from peft import get_peft_model, prepare_model_for_kbit_training
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
-from trl import SFTTrainer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from trl import SFTConfig, SFTTrainer
 
 from src.schemas import RunConfig
 from src.tracking.experiment_tracker import ExperimentTracker
@@ -74,7 +74,7 @@ class FineTuner:
         output_dir = self.config.output_dir
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-        training_args = TrainingArguments(
+        training_args = SFTConfig(
             output_dir=output_dir,
             num_train_epochs=tc.num_epochs,
             per_device_train_batch_size=tc.per_device_train_batch_size,
@@ -95,6 +95,9 @@ class FineTuner:
             load_best_model_at_end=tc.load_best_model_at_end,
             metric_for_best_model=tc.metric_for_best_model,
             report_to="none",
+            dataset_text_field="text",
+            max_seq_length=self.config.training.max_seq_length,
+            packing=True,
         )
 
         trainer = SFTTrainer(
@@ -102,10 +105,7 @@ class FineTuner:
             args=training_args,
             train_dataset=self.train_dataset,
             eval_dataset=self.val_dataset,
-            dataset_text_field="text",
-            tokenizer=tokenizer,
-            max_seq_length=self.config.training.max_seq_length,
-            packing=True,
+            processing_class=tokenizer,
             callbacks=[TensorBoardStepCallback(self.tracker)],
         )
 
