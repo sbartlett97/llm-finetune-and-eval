@@ -19,12 +19,14 @@ logger = logging.getLogger(__name__)
 
 
 def _attn_implementation() -> str:
-    try:
-        import flash_attn  # noqa: F401
-        return "flash_attention_2"
-    except ImportError:
-        logger.info("flash_attn not installed, falling back to sdpa")
-        return "sdpa"
+    for pkg in ("flash_attn", "flash_attn_3"):
+        try:
+            __import__(pkg)
+            return "flash_attention_2"
+        except ImportError:
+            continue
+    logger.info("flash_attn not installed, falling back to sdpa")
+    return "sdpa"
 
 
 def _build_bnb_config() -> BitsAndBytesConfig:
@@ -96,7 +98,7 @@ class FineTuner:
             metric_for_best_model=tc.metric_for_best_model,
             report_to="none",
             dataset_text_field="text",
-            max_seq_length=self.config.training.max_seq_length,
+            max_length=self.config.training.max_seq_length,
             packing=True,
         )
 
