@@ -88,7 +88,7 @@ class FineTuner:
             dataloader_num_workers=tc.dataloader_num_workers,
             seed=tc.seed,
             logging_steps=tc.logging_steps,
-            evaluation_strategy="steps",
+            eval_strategy="steps",
             eval_steps=tc.eval_steps,
             save_steps=tc.save_steps,
             save_total_limit=tc.save_total_limit,
