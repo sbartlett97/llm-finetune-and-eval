@@ -98,6 +98,7 @@ class FineTuner:
             dataset_text_field="text",
             max_length=self.config.training.max_seq_length,
             packing=True,
+            loss_type="sft",
         )
 
         trainer = SFTTrainer(
