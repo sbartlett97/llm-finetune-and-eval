@@ -19,14 +19,12 @@ logger = logging.getLogger(__name__)
 
 
 def _attn_implementation() -> str:
-    for pkg in ("flash_attn", "flash_attn_3"):
-        try:
-            __import__(pkg)
-            return "flash_attention_2"
-        except ImportError:
-            continue
-    logger.info("flash_attn not installed, falling back to sdpa")
-    return "sdpa"
+    try:
+        import flash_attn  # noqa: F401
+        return "flash_attention_2"
+    except ImportError:
+        logger.info("flash_attn not importable, falling back to sdpa")
+        return "sdpa"
 
 
 def _build_bnb_config() -> BitsAndBytesConfig:
