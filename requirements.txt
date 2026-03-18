@@ -1,13 +1,20 @@
-torch~=2.3.0
-transformers~=4.41.0
-peft~=0.11.1
-trl~=0.8.6
-bitsandbytes~=0.43.1
-accelerate~=0.30.0
-datasets~=2.19.0
-tokenizers~=0.19.1
-huggingface-hub~=0.23.0
-safetensors~=0.4.3
+# PyTorch — install with CUDA 13.0 wheel:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu130
+torch>=2.9.0
+transformers~=4.51.0
+peft~=0.18.0
+trl~=0.15.0
+bitsandbytes~=0.49.1
+accelerate~=1.4.0
+datasets~=3.3.0
+tokenizers~=0.21.0
+huggingface-hub>=0.30.0
+safetensors~=0.4.5
+
+# Flash Attention 3 — flash-attn 2.x does not support CUDA 13.0.
+# Prebuilt wheels for cu130 + torch 2.9.0:
+--find-links https://windreamer.github.io/flash-attention3-wheels/cu130_torch290
+flash_attn_3
 
 rouge-score~=0.1.2
 bert-score~=0.3.13
