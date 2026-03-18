@@ -21,7 +21,7 @@ training:
   fp16: false
   bf16: true
   seed: 42
-  max_seq_length: 1024
+  max_seq_length: 2056
   dataloader_num_workers: 4
   logging_steps: 10
   eval_steps: 500
