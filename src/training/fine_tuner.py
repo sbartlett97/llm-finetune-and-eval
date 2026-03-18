@@ -96,7 +96,7 @@ class FineTuner:
             metric_for_best_model=tc.metric_for_best_model,
             report_to="none",
             dataset_text_field="text",
-            max_length=self.config.training.max_seq_length,
+            max_seq_length=self.config.training.max_seq_length,
             packing=True,
             loss_type="sft",
         )
