@@ -4,6 +4,6 @@ torch>=2.9.0
 
 -r requirements-base.txt
 
-# Flash Attention 3 — flash-attn 2.x does not support CUDA 13.0
---find-links https://windreamer.github.io/flash-attention3-wheels/cu130_torch290
-flash_attn_3
+# Unsloth — 2x faster training and inference, 70% less VRAM
+# flash_attn_3 bundled by unsloth on cu130; separate install not needed
+unsloth

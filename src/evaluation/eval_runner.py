@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 import dataclasses
-import json
 import logging
 import random
-import tempfile
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Optional
 
 import torch
 from datasets import Dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 from src.evaluation.metrics.automated import compute_bertscore, compute_bleu, compute_rouge
 from src.evaluation.metrics.latency import LatencyBenchmark
@@ -23,44 +19,21 @@ from src.types import AutomatedMetricResults, EvalReport, EvalSample
 
 logger = logging.getLogger(__name__)
 
-_IS_LORA_ADAPTER = "adapter_config.json"
-
 
 def _load_model_and_tokenizer(model_path: str) -> tuple:  # type: ignore[type-arg]
-    tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
-    tokenizer.pad_token = tokenizer.eos_token
+    from unsloth import FastLanguageModel
 
-    bnb_config = BitsAndBytesConfig(
+    # Unsloth auto-detects LoRA adapters (adapter_config.json) and loads
+    # the base model + adapter in one call. 2x faster inference via for_inference().
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name=model_path,
+        max_seq_length=2048,
         load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
-        bnb_4bit_use_double_quant=True,
+        dtype=None,
     )
-
-    if (Path(model_path) / _IS_LORA_ADAPTER).exists():
-        from peft import PeftModel
-        base_model_id = _read_base_model_from_adapter(model_path)
-        base = AutoModelForCausalLM.from_pretrained(
-            base_model_id,
-            quantization_config=bnb_config,
-            device_map="auto",
-        )
-        model = PeftModel.from_pretrained(base, model_path)
-    else:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            quantization_config=bnb_config,
-            device_map="auto",
-        )
-
-    model.eval()
+    tokenizer.pad_token = tokenizer.eos_token
+    FastLanguageModel.for_inference(model)
     return model, tokenizer
-
-
-def _read_base_model_from_adapter(adapter_path: str) -> str:
-    config_path = Path(adapter_path) / "adapter_config.json"
-    data = json.loads(config_path.read_text())
-    return data["base_model_name_or_path"]
 
 
 def _generate_responses(

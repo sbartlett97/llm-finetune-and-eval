@@ -1,25 +1,12 @@
 from __future__ import annotations
 
-import json
 import logging
 import os
 from pathlib import Path
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 logger = logging.getLogger(__name__)
-
-_ADAPTER_CONFIG = "adapter_config.json"
-
-
-def _bnb_config() -> BitsAndBytesConfig:
-    return BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
-        bnb_4bit_use_double_quant=True,
-    )
 
 
 class ModelLoader:
@@ -30,22 +17,21 @@ class ModelLoader:
         self._ready = False
 
     def load(self) -> None:
+        from unsloth import FastLanguageModel
+
         model_path = self._resolve_model_path()
         logger.info("Loading model from: %s", model_path)
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
+        # Unsloth auto-detects LoRA adapters (adapter_config.json) and loads
+        # the correct base model before applying the adapter.
+        self.model, self.tokenizer = FastLanguageModel.from_pretrained(
+            model_name=model_path,
+            max_seq_length=2048,
+            load_in_4bit=True,
+            dtype=None,
+        )
         self.tokenizer.pad_token = self.tokenizer.eos_token  # type: ignore[union-attr]
-
-        if (Path(model_path) / _ADAPTER_CONFIG).exists():
-            self._load_lora(model_path)
-        else:
-            self.model = AutoModelForCausalLM.from_pretrained(
-                model_path,
-                quantization_config=_bnb_config(),
-                device_map="auto",
-            )
-
-        self.model.eval()  # type: ignore[union-attr]
+        FastLanguageModel.for_inference(self.model)  # 2x faster inference kernels
         self._ready = True
         logger.info("Model ready")
 
@@ -62,17 +48,6 @@ class ModelLoader:
                 )
             return str(checkpoint_dir)
         raise RuntimeError("Set MODEL_PATH or MODEL_RUN_ID environment variable")
-
-    def _load_lora(self, adapter_path: str) -> None:
-        from peft import PeftModel
-        config_path = Path(adapter_path) / _ADAPTER_CONFIG
-        base_model_id = json.loads(config_path.read_text())["base_model_name_or_path"]
-        base = AutoModelForCausalLM.from_pretrained(
-            base_model_id,
-            quantization_config=_bnb_config(),
-            device_map="auto",
-        )
-        self.model = PeftModel.from_pretrained(base, adapter_path)
 
     @property
     def is_ready(self) -> bool:

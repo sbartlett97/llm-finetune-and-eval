@@ -3,37 +3,15 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-import torch
 from datasets import Dataset
-from peft import get_peft_model, prepare_model_for_kbit_training
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from trl import SFTConfig, SFTTrainer
 
 from src.schemas import RunConfig
 from src.tracking.experiment_tracker import ExperimentTracker
 from src.training.callbacks import TensorBoardStepCallback
-from src.training.lora_config import build_lora_config
 from src.types import TrainingResult
 
 logger = logging.getLogger(__name__)
-
-
-def _attn_implementation() -> str:
-    try:
-        import flash_attn  # noqa: F401
-        return "flash_attention_2"
-    except ImportError:
-        logger.info("flash_attn not importable, falling back to sdpa")
-        return "sdpa"
-
-
-def _build_bnb_config() -> BitsAndBytesConfig:
-    return BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
-        bnb_4bit_use_double_quant=True,
-    )
 
 
 class FineTuner:
@@ -50,25 +28,31 @@ class FineTuner:
         self.tracker = tracker
 
     def train(self) -> TrainingResult:
+        from unsloth import FastLanguageModel
+
         tc = self.config.training
+        lc = self.config.lora
 
-        tokenizer = AutoTokenizer.from_pretrained(self.config.base_model, use_fast=True)
-        tokenizer.pad_token = tokenizer.eos_token
-        tokenizer.padding_side = "right"
-
-        model = AutoModelForCausalLM.from_pretrained(
-            self.config.base_model,
-            quantization_config=_build_bnb_config(),
-            device_map="auto",
-            trust_remote_code=True,
-            attn_implementation=_attn_implementation(),
+        model, tokenizer = FastLanguageModel.from_pretrained(
+            model_name=self.config.base_model,
+            max_seq_length=tc.max_seq_length,
+            load_in_4bit=True,
+            dtype=None,  # auto: bf16 on Ampere+, fp16 on older hardware
         )
-        model.config.use_cache = False
-        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
-        model.enable_input_require_grads()
+        tokenizer.padding_side = "right"
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
 
-        lora_config = build_lora_config(self.config.lora)
-        model = get_peft_model(model, lora_config)
+        model = FastLanguageModel.get_peft_model(
+            model,
+            r=lc.r,
+            lora_alpha=lc.lora_alpha,
+            lora_dropout=lc.lora_dropout,
+            target_modules=lc.target_modules,
+            bias=lc.bias,
+            use_gradient_checkpointing="unsloth",  # ~30% less VRAM; supports long contexts
+            random_state=tc.seed,
+        )
         model.print_trainable_parameters()
 
         output_dir = self.config.output_dir
@@ -96,9 +80,8 @@ class FineTuner:
             metric_for_best_model=tc.metric_for_best_model,
             report_to="none",
             dataset_text_field="text",
-            max_seq_length=self.config.training.max_seq_length,
+            max_seq_length=tc.max_seq_length,
             packing=True,
-            loss_type="sft",
         )
 
         trainer = SFTTrainer(
