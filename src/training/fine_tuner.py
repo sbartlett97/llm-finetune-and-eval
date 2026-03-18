@@ -18,6 +18,15 @@ from src.types import TrainingResult
 logger = logging.getLogger(__name__)
 
 
+def _attn_implementation() -> str:
+    try:
+        import flash_attn  # noqa: F401
+        return "flash_attention_2"
+    except ImportError:
+        logger.info("flash_attn not installed, falling back to sdpa")
+        return "sdpa"
+
+
 def _build_bnb_config() -> BitsAndBytesConfig:
     return BitsAndBytesConfig(
         load_in_4bit=True,
@@ -52,7 +61,7 @@ class FineTuner:
             quantization_config=_build_bnb_config(),
             device_map="auto",
             trust_remote_code=True,
-            attn_implementation="flash_attention_2",
+            attn_implementation=_attn_implementation(),
         )
         model.config.use_cache = False
         model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
