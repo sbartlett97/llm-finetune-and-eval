@@ -89,7 +89,6 @@ class MedicalQADataModule:
             Path(save_path).write_text(json.dumps(indices))
 
     def _load_splits_from_indices(self, dataset: Dataset, path: str) -> None:
-        indices = json.loads(Path(path).read_text())
         test_val_size = self.config.val_size + self.config.test_size
         split1 = dataset.train_test_split(
             test_size=test_val_size, seed=self.config.seed, shuffle=True

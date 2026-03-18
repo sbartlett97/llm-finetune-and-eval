@@ -1,0 +1,42 @@
+# Core ML / HuggingFace
+transformers~=4.51.0
+peft~=0.18.0
+trl~=0.15.0
+bitsandbytes~=0.49.2
+accelerate~=1.4.0
+datasets~=3.3.0
+tokenizers~=0.21.0
+huggingface-hub>=0.30.0
+safetensors~=0.4.5
+
+# Metrics
+rouge-score~=0.1.2
+bert-score~=0.3.13
+sacrebleu~=2.4.2
+
+# LLM judge
+langchain~=0.2.1
+langchain-openai~=0.1.7
+openai~=1.30.1
+pydantic~=2.7.1
+
+# Tracking
+tensorboard~=2.17.0
+
+# Serving
+fastapi~=0.111.0
+uvicorn[standard]~=0.29.0
+httpx~=0.27.0
+python-multipart~=0.0.9
+
+# Dashboard
+streamlit~=1.35.0
+plotly~=5.22.0
+pandas~=2.2.2
+
+# Utilities
+pyyaml~=6.0.1
+python-dotenv~=1.0.1
+numpy~=1.26.4
+scipy~=1.13.0
+typing-extensions~=4.11.0

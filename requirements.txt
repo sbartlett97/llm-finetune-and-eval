@@ -1,42 +1,9 @@
+# CUDA 13.0 — local dev with CUDA 13 driver
 --index-url https://download.pytorch.org/whl/cu130
 torch>=2.9.0
-transformers~=4.51.0
-peft~=0.18.0
-trl~=0.15.0
-bitsandbytes~=0.49.2  # 0.48.1+ required for CUDA 13.0 (cu130) support
-accelerate~=1.4.0
-datasets~=3.3.0
-tokenizers~=0.21.0
-huggingface-hub>=0.30.0
-safetensors~=0.4.5
 
-# Flash Attention 3 — flash-attn 2.x does not support CUDA 13.0.
-# Prebuilt wheels for cu130 + torch 2.9.0:
+-r requirements-base.txt
+
+# Flash Attention 3 — flash-attn 2.x does not support CUDA 13.0
 --find-links https://windreamer.github.io/flash-attention3-wheels/cu130_torch290
 flash_attn_3
-
-rouge-score~=0.1.2
-bert-score~=0.3.13
-sacrebleu~=2.4.2
-
-langchain~=0.2.1
-langchain-openai~=0.1.7
-openai~=1.30.1
-pydantic~=2.7.1
-
-tensorboard~=2.17.0
-
-fastapi~=0.111.0
-uvicorn[standard]~=0.29.0
-httpx~=0.27.0
-python-multipart~=0.0.9
-
-streamlit~=1.35.0
-plotly~=5.22.0
-pandas~=2.2.2
-
-pyyaml~=6.0.1
-python-dotenv~=1.0.1
-numpy~=1.26.4
-scipy~=1.13.0
-typing-extensions~=4.11.0

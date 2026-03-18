@@ -8,9 +8,8 @@ RUN ln -sf /usr/bin/python3.11 /usr/bin/python && \
     ln -sf /usr/bin/pip3 /usr/bin/pip
 
 WORKDIR /build
-COPY requirements.txt .
-RUN pip install --no-cache-dir torch~=2.3.0 --index-url https://download.pytorch.org/whl/cu121 && \
-    pip install --no-cache-dir -r requirements.txt
+COPY requirements-base.txt requirements-cu121.txt ./
+RUN pip install --no-cache-dir -r requirements-cu121.txt
 
 
 FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04

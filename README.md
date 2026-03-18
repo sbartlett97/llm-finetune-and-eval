@@ -1,6 +1,6 @@
 # LLM Eval Harness — Medical Q&A Fine-tuning & Evaluation
 
-A production-grade LLM fine-tuning and evaluation harness built as a portfolio project. The system fine-tunes **Mistral-7B-Instruct-v0.2** on a medical dialogue dataset using LoRA/QLoRA and provides a structured, repeatable evaluation framework across multiple metric dimensions.
+A production-grade LLM fine-tuning and evaluation harness built as a portfolio project. The system fine-tunes **SmolLM3-3B-128K (`unsloth/SmolLM3-3B-128K`)** on a medical dialogue dataset using LoRA/QLoRA and provides a structured, repeatable evaluation framework across multiple metric dimensions.
 
 The emphasis is on the *system around the model*: experiment tracking, metric design, regression detection, and production serving — not just the model weights.
 
@@ -63,7 +63,7 @@ The emphasis is on the *system around the model*: experiment tracking, metric de
 │  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘  │
 │         └─────────────────┴─────────────────────┘              │
 │                               ↓                                 │
-│                      MLflow Tracking Server                     │
+│                TensorBoard (+ JSON sidecars)                    │
 └──────────────────────────────┬──────────────────────────────────┘
                                │
                                ▼
@@ -80,9 +80,9 @@ The emphasis is on the *system around the model*: experiment tracking, metric de
 
 - **Config-driven.** All training and eval runs are controlled by YAML config files — no magic numbers in code.
 - **Decoupled eval.** The eval runner is independent of training. It accepts any HuggingFace-compatible model path.
-- **Tracker abstraction.** All MLflow calls go through `ExperimentTracker` — the training and eval code is tracker-agnostic.
-- **Fail loudly.** Eval failures raise exceptions and are marked as failed runs in MLflow. No silent zero scores.
-- **Reproducible.** Given the same config YAML and seed, any run produces identical results. Dataset splits are fixed and saved as MLflow artefacts.
+- **Tracker abstraction.** All TensorBoard calls go through `ExperimentTracker` — the training and eval code is tracker-agnostic.
+- **Fail loudly.** Eval failures raise exceptions and are flagged in the TensorBoard JSON sidecar. No silent zero scores.
+- **Reproducible.** Given the same config YAML and seed, any run produces identical results. Dataset splits are fixed and saved as JSON sidecars alongside TensorBoard events.
 
 For full rationale on each decision, see [`DECISIONS.md`](DECISIONS.md) *(to be written)*.
 
@@ -139,7 +139,7 @@ eval-harness/
 ### Prerequisites
 
 - Python 3.11+
-- `HF_TOKEN` — HuggingFace token (Mistral-7B-Instruct-v0.2 is gated)
+- `HF_TOKEN` — HuggingFace token (for `unsloth/SmolLM3-3B-128K`)
 - `OPENAI_API_KEY` — for LLM-as-judge (GPT-4o-mini)
 - CUDA GPU for training and meaningful latency benchmarks
 
@@ -150,7 +150,8 @@ git clone <repo-url>
 cd eval-harness
 
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.txt        # CUDA 13 (local dev)
+# pip install -r requirements-cu121.txt  # CUDA 12.x / Docker
 
 cp .env.example .env
 # Edit .env and fill in HF_TOKEN and OPENAI_API_KEY
@@ -181,7 +182,7 @@ python scripts/eval.py --run-id run_lora_r16
 bash scripts/run_all_experiments.sh
 ```
 
-> This runs all five experiments sequentially. Expect ~3–4 hours per training run on an A100 40GB.
+> This runs all five experiments sequentially. Expect ~1–2 hours per training run on an A100 40GB.
 
 ### View results in TensorBoard
 
@@ -216,13 +217,13 @@ streamlit run dashboard/app.py
 
 | Run ID | Description | LoRA Rank | Epochs | Notes |
 |---|---|---|---|---|
-| `run_baseline` | Base Mistral-7B, no fine-tuning | — | — | Upper bound for degradation detection |
-| `run_lora_r8` | LoRA rank 8 | 8 | 3 | Minimal adapter capacity |
-| `run_lora_r16` | LoRA rank 16 *(default)* | 16 | 3 | Primary experiment |
-| `run_lora_r32` | LoRA rank 32 | 32 | 3 | Higher capacity, more VRAM |
-| `run_lora_r16_2ep` | Rank 16, shorter training | 16 | 2 | Tests early stopping tradeoff |
+| `run_baseline` | Base SmolLM3-3B-128K, no fine-tuning | — | — | Upper bound for degradation detection |
+| `run_lora_r8` | LoRA rank 8 | 8 | 1 | Minimal adapter capacity |
+| `run_lora_r16` | LoRA rank 16 *(default)* | 16 | 1 | Primary experiment |
+| `run_lora_r32` | LoRA rank 32 | 32 | 1 | Higher capacity, more VRAM |
+| `run_lora_r16_2ep` | Rank 16, 2 epochs | 16 | 2 | Tests multi-epoch tradeoff |
 
-All runs use Mistral-7B-Instruct-v0.2 with 4-bit NF4 quantisation, `lora_alpha=2×r`, `target_modules=q_proj,v_proj`.
+All runs use SmolLM3-3B-128K (`unsloth/SmolLM3-3B-128K`) with 4-bit NF4 quantisation, `lora_alpha=2×r`, `target_modules=q_proj,k_proj,v_proj,o_proj`.
 
 ---
 
@@ -255,7 +256,7 @@ Mean and standard deviation are logged per run. The judge prompt uses structured
 
 ## Regression Detection
 
-After each eval run, all metrics are compared against `run_baseline`. If any metric degrades beyond its configured threshold, the MLflow run is tagged `regression_detected: true` and a warning is printed.
+After each eval run, all metrics are compared against `run_baseline`. If any metric degrades beyond its configured threshold, the run is flagged `regression_detected: true` in the TensorBoard JSON sidecar and a warning is printed.
 
 Thresholds (configurable in `configs/eval_config.yaml`):
 
@@ -302,7 +303,7 @@ Thresholds (configurable in `configs/eval_config.yaml`):
 
 ```bash
 # Required
-HF_TOKEN=                    # HuggingFace token (Mistral is gated)
+HF_TOKEN=                    # HuggingFace token (for unsloth/SmolLM3-3B-128K)
 OPENAI_API_KEY=              # GPT-4o-mini for LLM judge
 
 # Optional
@@ -319,7 +320,7 @@ See `.env.example` for a full template.
 
 | Component | Technology |
 |---|---|
-| Base model | Mistral-7B-Instruct-v0.2 |
+| Base model | SmolLM3-3B-128K (`unsloth/SmolLM3-3B-128K`) |
 | Fine-tuning | `transformers` + `peft` + `trl` (SFTTrainer) |
 | Quantisation | `bitsandbytes` NF4 4-bit |
 | Automated metrics | `rouge_score`, `bert_score`, `sacrebleu` |
@@ -342,7 +343,7 @@ python scripts/train.py --config configs/training/lora_r16.yaml
 python scripts/eval.py --run-id run_lora_r16
 ```
 
-The dataset split indices are saved as MLflow artefacts alongside each run.
+The dataset split indices are saved as JSON sidecars alongside TensorBoard events for each run.
 
 ---
 

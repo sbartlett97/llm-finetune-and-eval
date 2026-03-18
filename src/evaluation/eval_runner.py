@@ -34,6 +34,7 @@ def _load_model_and_tokenizer(model_path: str) -> tuple:  # type: ignore[type-ar
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
     )
 
     if (Path(model_path) / _IS_LORA_ADAPTER).exists():
