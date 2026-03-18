@@ -1,5 +1,5 @@
 run_name: run_lora_r16
-base_model: mistralai/Mistral-7B-Instruct-v0.2
+base_model: unsloth/SmolLM3-3B-128K
 output_dir: ./checkpoints/run_lora_r16
 
 lora:
@@ -11,9 +11,9 @@ lora:
   task_type: CAUSAL_LM
 
 training:
-  num_epochs: 3
-  per_device_train_batch_size: 4
-  gradient_accumulation_steps: 4  # effective batch size 16
+  num_epochs: 1
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 2  # effective batch size 16
   learning_rate: 2.0e-4
   lr_scheduler_type: cosine
   warmup_ratio: 0.03
