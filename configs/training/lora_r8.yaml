@@ -8,7 +8,6 @@ lora:
   lora_dropout: 0.05
   target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
   bias: none
-  task_type: CAUSAL_LM
 
 training:
   num_epochs: 1
@@ -27,5 +26,5 @@ training:
   save_total_limit: 2
   load_best_model_at_end: true
   metric_for_best_model: eval_loss
-  max_seq_length: 2056
+  max_seq_length: 2048
   dataloader_num_workers: 4

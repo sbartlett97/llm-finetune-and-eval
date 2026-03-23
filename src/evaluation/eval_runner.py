@@ -20,14 +20,14 @@ from src.types import AutomatedMetricResults, EvalReport, EvalSample
 logger = logging.getLogger(__name__)
 
 
-def _load_model_and_tokenizer(model_path: str) -> tuple:  # type: ignore[type-arg]
+def _load_model_and_tokenizer(model_path: str, max_seq_length: int) -> tuple:  # type: ignore[type-arg]
     from unsloth import FastLanguageModel
 
     # Unsloth auto-detects LoRA adapters (adapter_config.json) and loads
     # the base model + adapter in one call. 2x faster inference via for_inference().
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=model_path,
-        max_seq_length=2048,
+        max_seq_length=max_seq_length,
         load_in_4bit=True,
         dtype=None,
     )
@@ -90,7 +90,7 @@ class EvalRunner:
         self.baseline_run_name = baseline_run_name
 
     def run(self, dataset: Dataset) -> EvalReport:
-        model, tokenizer = _load_model_and_tokenizer(self.model_path)
+        model, tokenizer = _load_model_and_tokenizer(self.model_path, self.config.max_seq_length)
 
         rng = random.Random(self.config.seed)
         indices = list(range(len(dataset)))
@@ -194,10 +194,11 @@ class EvalRunner:
         responses: list[str],
         automated: AutomatedMetricResults,
     ) -> list[EvalSample]:
-        from src.evaluation.metrics.automated import compute_rouge
+        from src.evaluation.metrics.automated import compute_bertscore, compute_rouge
         samples = []
         for i, (q, ref, resp) in enumerate(zip(questions, references, responses)):
             rouge = compute_rouge([resp], [ref])
+            bs = compute_bertscore([resp], [ref])
             samples.append(
                 EvalSample(
                     sample_id=str(i),
@@ -205,7 +206,7 @@ class EvalRunner:
                     reference_answer=ref,
                     model_response=resp,
                     rouge_l=rouge["rouge_l"],
-                    bertscore_f1=automated.bertscore_f1,
+                    bertscore_f1=bs["bertscore_f1"],
                 )
             )
         return samples

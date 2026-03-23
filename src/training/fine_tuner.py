@@ -108,5 +108,3 @@ class FineTuner:
             run_id=self.tracker.current_run_id or "",
         )
 
-    def save_checkpoint(self, output_dir: str) -> None:
-        Path(output_dir).mkdir(parents=True, exist_ok=True)

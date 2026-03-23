@@ -22,11 +22,12 @@ class ModelLoader:
         model_path = self._resolve_model_path()
         logger.info("Loading model from: %s", model_path)
 
+        max_seq_length = int(os.environ.get("MAX_SEQ_LENGTH", "2048"))
         # Unsloth auto-detects LoRA adapters (adapter_config.json) and loads
         # the correct base model before applying the adapter.
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
             model_name=model_path,
-            max_seq_length=2048,
+            max_seq_length=max_seq_length,
             load_in_4bit=True,
             dtype=None,
         )

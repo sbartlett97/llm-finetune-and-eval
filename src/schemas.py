@@ -12,7 +12,6 @@ class LoraConfig(BaseModel):
                                   "gate_proj", "up_proj", "down_proj"]
     )
     bias: str = "none"
-    task_type: str = "CAUSAL_LM"
 
 
 class TrainingConfig(BaseModel):
@@ -72,6 +71,7 @@ class EvalConfig(BaseModel):
     latency_benchmark_requests: int = 100
     seed: int = 42
     serving_url: str = "http://localhost:8000"
+    max_seq_length: int = 2048
     regression_thresholds: RegressionThresholds = Field(default_factory=RegressionThresholds)
 
 
