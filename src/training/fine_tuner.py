@@ -38,6 +38,7 @@ class FineTuner:
             max_seq_length=tc.max_seq_length,
             load_in_4bit=True,
             dtype=None,  # auto: bf16 on Ampere+, fp16 on older hardware
+            eos_token="<|im_end|>"
         )
         tokenizer.padding_side = "right"
         # Unsloth may set a placeholder eos_token (e.g. '<EOS_TOKEN>') that isn't
