@@ -1,6 +1,6 @@
 # LLM Eval Harness — Medical Q&A Fine-tuning & Evaluation
 
-A production-grade LLM fine-tuning and evaluation harness built as a portfolio project. The system fine-tunes **SmolLM3-3B-128K (`unsloth/SmolLM3-3B-128K`)** on a medical dialogue dataset using LoRA/QLoRA and provides a structured, repeatable evaluation framework across multiple metric dimensions.
+A production-grade LLM fine-tuning and evaluation harness built as a portfolio project. The system fine-tunes **Qwen2.5-3B-Instruct (`unsloth/Qwen2.5-3B-Instruct`)** on a medical dialogue dataset using LoRA/QLoRA and provides a structured, repeatable evaluation framework across multiple metric dimensions.
 
 The emphasis is on the *system around the model*: experiment tracking, metric design, regression detection, and production serving — not just the model weights.
 
@@ -139,7 +139,7 @@ eval-harness/
 ### Prerequisites
 
 - Python 3.11+
-- `HF_TOKEN` — HuggingFace token (for `unsloth/SmolLM3-3B-128K`)
+- `HF_TOKEN` — HuggingFace token (for `unsloth/Qwen2.5-3B-Instruct`)
 - `OPENAI_API_KEY` — for LLM-as-judge (GPT-4o-mini)
 - CUDA GPU for training and meaningful latency benchmarks
 
@@ -217,13 +217,13 @@ streamlit run dashboard/app.py
 
 | Run ID | Description | LoRA Rank | Epochs | Notes |
 |---|---|---|---|---|
-| `run_baseline` | Base SmolLM3-3B-128K, no fine-tuning | — | — | Upper bound for degradation detection |
+| `run_baseline` | Base Qwen2.5-3B-Instruct, no fine-tuning | — | — | Upper bound for degradation detection |
 | `run_lora_r8` | LoRA rank 8 | 8 | 1 | Minimal adapter capacity |
 | `run_lora_r16` | LoRA rank 16 *(default)* | 16 | 1 | Primary experiment |
 | `run_lora_r32` | LoRA rank 32 | 32 | 1 | Higher capacity, more VRAM |
 | `run_lora_r16_2ep` | Rank 16, 2 epochs | 16 | 2 | Tests multi-epoch tradeoff |
 
-All runs use SmolLM3-3B-128K (`unsloth/SmolLM3-3B-128K`) with 4-bit QLoRA, `lora_alpha=2×r`, `target_modules=q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj`, `max_seq_length=2048`.
+All runs use Qwen2.5-3B-Instruct (`unsloth/Qwen2.5-3B-Instruct`) with 4-bit QLoRA, `lora_alpha=2×r`, `target_modules=q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj`, `max_seq_length=2048`.
 
 ---
 
@@ -303,7 +303,7 @@ Thresholds (configurable in `configs/eval_config.yaml`):
 
 ```bash
 # Required
-HF_TOKEN=                    # HuggingFace token (for unsloth/SmolLM3-3B-128K)
+HF_TOKEN=                    # HuggingFace token (for unsloth/Qwen2.5-3B-Instruct)
 OPENAI_API_KEY=              # GPT-4o-mini for LLM judge
 
 # Optional
@@ -321,7 +321,7 @@ See `.env.example` for a full template.
 
 | Component | Technology |
 |---|---|
-| Base model | SmolLM3-3B-128K (`unsloth/SmolLM3-3B-128K`) |
+| Base model | Qwen2.5-3B-Instruct (`unsloth/Qwen2.5-3B-Instruct`) |
 | Fine-tuning | `unsloth` (`FastLanguageModel`) + `trl` (SFTTrainer) |
 | Quantisation | Unsloth 4-bit QLoRA (NF4, `load_in_4bit=True`) |
 | Automated metrics | `rouge_score`, `bert_score`, `sacrebleu` |

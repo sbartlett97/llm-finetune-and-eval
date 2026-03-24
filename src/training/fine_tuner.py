@@ -5,7 +5,6 @@ from pathlib import Path
 
 from datasets import Dataset
 from trl import SFTConfig, SFTTrainer
-from unsloth.chat_templates import get_chat_template
 
 from src.schemas import RunConfig
 from src.tracking.experiment_tracker import ExperimentTracker
@@ -40,10 +39,8 @@ class FineTuner:
             load_in_4bit=True,
             dtype=None,  # auto: bf16 on Ampere+, fp16 on older hardware
         )
-        # map_eos_token=True is the unsloth-recommended way to register <|im_end|>
-        # as the EOS token so it appears in get_vocab(). Without this, unsloth
-        # sets a placeholder '<EOS_TOKEN>' that fails TRL 0.23+'s vocab check.
-        tokenizer = get_chat_template(tokenizer, chat_template="chatml", map_eos_token=True)
+        # Qwen2.5 uses ChatML natively — <|im_end|> is already the EOS token in
+        # its Rust vocab, so no template remapping or token registration is needed.
         tokenizer.padding_side = "right"
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
@@ -59,12 +56,6 @@ class FineTuner:
             random_state=tc.seed,
         )
         model.print_trainable_parameters()
-        # Unsloth's patched SFTTrainer reads model.config.eos_token_id and converts
-        # it back to a token string to set args.eos_token before calling TRL's __init__.
-        # If model.config still has the original placeholder ID, that conversion yields
-        # '<EOS_TOKEN>' which is not in the fast tokenizer's Rust vocab → ValueError.
-        # Syncing the config ID here ensures unsloth reads the correct <|im_end|> ID.
-        model.config.eos_token_id = tokenizer.eos_token_id
 
         output_dir = self.config.output_dir
         Path(output_dir).mkdir(parents=True, exist_ok=True)
