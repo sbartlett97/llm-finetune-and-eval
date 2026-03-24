@@ -111,7 +111,7 @@ eval-harness/
 │   │   │   ├── llm_judge.py       # LangChain + structured output scoring
 │   │   │   └── latency.py         # p50/p95/p99 benchmark
 │   │   └── regression.py          # flags degradation vs baseline
-│   ├── tracking/                  # ExperimentTracker (MLflow abstraction)
+│   ├── tracking/                  # ExperimentTracker (TensorBoard abstraction)
 │   └── serving/                   # FastAPI app + model loader
 │
 ├── dashboard/app.py               # Streamlit: live demo + experiment comparison
@@ -223,7 +223,7 @@ streamlit run dashboard/app.py
 | `run_lora_r32` | LoRA rank 32 | 32 | 1 | Higher capacity, more VRAM |
 | `run_lora_r16_2ep` | Rank 16, 2 epochs | 16 | 2 | Tests multi-epoch tradeoff |
 
-All runs use SmolLM3-3B-128K (`unsloth/SmolLM3-3B-128K`) with 4-bit NF4 quantisation, `lora_alpha=2×r`, `target_modules=q_proj,k_proj,v_proj,o_proj`.
+All runs use SmolLM3-3B-128K (`unsloth/SmolLM3-3B-128K`) with 4-bit QLoRA, `lora_alpha=2×r`, `target_modules=q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj`, `max_seq_length=2048`.
 
 ---
 
@@ -309,6 +309,7 @@ OPENAI_API_KEY=              # GPT-4o-mini for LLM judge
 # Optional
 MODEL_RUN_ID=run_lora_r16    # Which checkpoint the server loads (resolves to checkpoints/{run_id}/)
 MODEL_PATH=                  # Override: explicit local path to model weights
+MAX_SEQ_LENGTH=2048          # Context window for inference serving (default: 2048)
 LOG_LEVEL=INFO
 ```
 
@@ -321,8 +322,8 @@ See `.env.example` for a full template.
 | Component | Technology |
 |---|---|
 | Base model | SmolLM3-3B-128K (`unsloth/SmolLM3-3B-128K`) |
-| Fine-tuning | `transformers` + `peft` + `trl` (SFTTrainer) |
-| Quantisation | `bitsandbytes` NF4 4-bit |
+| Fine-tuning | `unsloth` (`FastLanguageModel`) + `trl` (SFTTrainer) |
+| Quantisation | Unsloth 4-bit QLoRA (NF4, `load_in_4bit=True`) |
 | Automated metrics | `rouge_score`, `bert_score`, `sacrebleu` |
 | LLM judge | `langchain` + `langchain-openai` |
 | Experiment tracking | TensorBoard 2.x |

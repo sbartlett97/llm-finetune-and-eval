@@ -1,7 +1,7 @@
 # CUDA 12.1 — Docker image and CUDA 12.x hardware
 # cu121 binaries also run on CUDA 12.4+ and CUDA 13.x (backward compatible)
 --index-url https://download.pytorch.org/whl/cu121
-torch~=2.6.0
+torch
 
 -r requirements-base.txt
 
