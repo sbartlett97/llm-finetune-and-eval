@@ -93,6 +93,7 @@ class FineTuner:
             train_dataset=self.train_dataset,
             eval_dataset=self.val_dataset,
             processing_class=tokenizer,
+            eos_token="<|im_end|>",  # <-- add this
             callbacks=[TensorBoardStepCallback(self.tracker)],
         )
 
