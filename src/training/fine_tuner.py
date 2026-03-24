@@ -41,10 +41,6 @@ class FineTuner:
             eos_token="<|im_end|>"
         )
         tokenizer.padding_side = "right"
-        # Unsloth may set a placeholder eos_token (e.g. '<EOS_TOKEN>') that isn't
-        # in get_vocab(), causing newer TRL to raise a ValueError. Use add_special_tokens
-        # so the token is fully registered and appears in get_vocab().
-        tokenizer.add_special_tokens({"eos_token": "<|im_end|>"})
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
 
@@ -57,7 +53,6 @@ class FineTuner:
             bias=lc.bias,
             use_gradient_checkpointing="unsloth",  # ~30% less VRAM; supports long contexts
             random_state=tc.seed,
-            eos_token="<|im_end|>"
         )
         model.print_trainable_parameters()
 
@@ -87,6 +82,11 @@ class FineTuner:
             report_to="none",
             dataset_text_field="text",
             packing=True,
+            # TRL 0.23+ validates processing_class.eos_token against get_vocab().
+            # Unsloth sets a placeholder '<EOS_TOKEN>' that isn't in the vocab.
+            # Setting eos_token here makes TRL validate this value instead,
+            # bypassing the broken tokenizer attribute.
+            eos_token="<|im_end|>",
         )
 
         trainer = SFTTrainer(
