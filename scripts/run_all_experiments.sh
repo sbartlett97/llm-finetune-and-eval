@@ -6,28 +6,65 @@ log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 EVAL_CONFIG="${EVAL_CONFIG:-configs/eval_config.yaml}"
 DATA_CONFIG="${DATA_CONFIG:-configs/data_config.yaml}"
 DUAL_GPU="${DUAL_GPU:-0}"
+STATE_FILE="${STATE_FILE:-.experiment_state}"
+
+if [[ "${1:-}" == "--reset" ]]; then
+    log "Resetting experiment state: $STATE_FILE"
+    rm -f "$STATE_FILE"
+fi
+
+is_done()  { grep -qxF "$1" "$STATE_FILE" 2>/dev/null; }
+mark_done() { echo "$1" >> "$STATE_FILE"; }
 
 run_experiment() {
     local config="$1"
     local run_id="$2"
-    log "Starting training: $run_id"
-    python scripts/train.py --config "$config" --data-config "$DATA_CONFIG"
-    log "Training complete: $run_id"
 
-    log "Starting eval: $run_id"
-    python scripts/eval.py --run-id "$run_id" --eval-config "$EVAL_CONFIG" --data-config "$DATA_CONFIG"
-    log "Eval complete: $run_id"
+    if is_done "train_${run_id}"; then
+        log "Skipping training (already done): $run_id"
+    else
+        log "Starting training: $run_id"
+        python scripts/train.py --config "$config" --data-config "$DATA_CONFIG"
+        mark_done "train_${run_id}"
+        log "Training complete: $run_id"
+    fi
+
+    if is_done "eval_${run_id}"; then
+        log "Skipping eval (already done): $run_id"
+    else
+        log "Starting eval: $run_id"
+        python scripts/eval.py --run-id "$run_id" --eval-config "$EVAL_CONFIG" --data-config "$DATA_CONFIG"
+        mark_done "eval_${run_id}"
+        log "Eval complete: $run_id"
+    fi
 }
 
 run_experiment_on_gpu() {
     local gpu_id="$1" config="$2" run_id="$3"
-    CUDA_VISIBLE_DEVICES="$gpu_id" python scripts/train.py --config "$config" --data-config "$DATA_CONFIG"
-    CUDA_VISIBLE_DEVICES="$gpu_id" python scripts/eval.py --run-id "$run_id" --eval-config "$EVAL_CONFIG" --data-config "$DATA_CONFIG"
+
+    if is_done "train_${run_id}"; then
+        log "Skipping training (already done): $run_id"
+    else
+        CUDA_VISIBLE_DEVICES="$gpu_id" python scripts/train.py --config "$config" --data-config "$DATA_CONFIG"
+        mark_done "train_${run_id}"
+    fi
+
+    if is_done "eval_${run_id}"; then
+        log "Skipping eval (already done): $run_id"
+    else
+        CUDA_VISIBLE_DEVICES="$gpu_id" python scripts/eval.py --run-id "$run_id" --eval-config "$EVAL_CONFIG" --data-config "$DATA_CONFIG"
+        mark_done "eval_${run_id}"
+    fi
 }
 
 log "=== Baseline (no fine-tuning) ==="
-python scripts/eval.py --model-path unsloth/SmolLM3-3B-128K --run-name run_baseline \
-    --eval-config "$EVAL_CONFIG" --data-config "$DATA_CONFIG"
+if is_done "eval_baseline"; then
+    log "Skipping baseline eval (already done)"
+else
+    python scripts/eval.py --model-path unsloth/SmolLM3-3B-128K --run-name run_baseline \
+        --eval-config "$EVAL_CONFIG" --data-config "$DATA_CONFIG"
+    mark_done "eval_baseline"
+fi
 
 if [[ "$DUAL_GPU" == "1" ]]; then
     log "=== Dual-GPU mode: GPU 0 -> r8, r16 | GPU 1 -> r32, r16_2ep ==="
