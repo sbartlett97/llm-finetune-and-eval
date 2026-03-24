@@ -59,6 +59,12 @@ class FineTuner:
             random_state=tc.seed,
         )
         model.print_trainable_parameters()
+        # Unsloth's patched SFTTrainer reads model.config.eos_token_id and converts
+        # it back to a token string to set args.eos_token before calling TRL's __init__.
+        # If model.config still has the original placeholder ID, that conversion yields
+        # '<EOS_TOKEN>' which is not in the fast tokenizer's Rust vocab → ValueError.
+        # Syncing the config ID here ensures unsloth reads the correct <|im_end|> ID.
+        model.config.eos_token_id = tokenizer.eos_token_id
 
         output_dir = self.config.output_dir
         Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -87,17 +93,6 @@ class FineTuner:
             dataset_text_field="text",
             packing=True,
         )
-
-        # Debug: log eos_token state before SFTTrainer
-        logger.info("tokenizer.eos_token=%r  training_args.eos_token=%r",
-                    tokenizer.eos_token, getattr(training_args, "eos_token", "<attr missing>"))
-
-        # Unsloth may set eos_token on SFTConfig to a placeholder not in the vocab.
-        # Use object.__setattr__ to bypass any frozen/descriptor behaviour.
-        eos_attr = getattr(training_args, "eos_token", None)
-        if eos_attr is not None:
-            logger.info("Clearing SFTConfig.eos_token='%s' via object.__setattr__", eos_attr)
-            object.__setattr__(training_args, "eos_token", None)
 
         trainer = SFTTrainer(
             model=model,
