@@ -56,6 +56,7 @@ class FineTuner:
             bias=lc.bias,
             use_gradient_checkpointing="unsloth",  # ~30% less VRAM; supports long contexts
             random_state=tc.seed,
+            eos_token="<|im_end|>"
         )
         model.print_trainable_parameters()
 
@@ -93,7 +94,6 @@ class FineTuner:
             train_dataset=self.train_dataset,
             eval_dataset=self.val_dataset,
             processing_class=tokenizer,
-            eos_token="<|im_end|>",  # <-- add this
             callbacks=[TensorBoardStepCallback(self.tracker)],
         )
 
