@@ -40,6 +40,9 @@ class FineTuner:
             dtype=None,  # auto: bf16 on Ampere+, fp16 on older hardware
         )
         tokenizer.padding_side = "right"
+        # SmolLM3 uses ChatML; unsloth may set a placeholder <EOS_TOKEN> that isn't
+        # in the vocab. Use the real ChatML end-of-turn token instead.
+        tokenizer.eos_token = "<|im_end|>"
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
 
