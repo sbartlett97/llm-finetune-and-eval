@@ -5,6 +5,7 @@ from pathlib import Path
 
 from datasets import Dataset
 from trl import SFTConfig, SFTTrainer
+from unsloth.chat_templates import get_chat_template
 
 from src.schemas import RunConfig
 from src.tracking.experiment_tracker import ExperimentTracker
@@ -39,6 +40,10 @@ class FineTuner:
             load_in_4bit=True,
             dtype=None,  # auto: bf16 on Ampere+, fp16 on older hardware
         )
+        # map_eos_token=True is the unsloth-recommended way to register <|im_end|>
+        # as the EOS token so it appears in get_vocab(). Without this, unsloth
+        # sets a placeholder '<EOS_TOKEN>' that fails TRL 0.23+'s vocab check.
+        tokenizer = get_chat_template(tokenizer, chat_template="chatml", map_eos_token=True)
         tokenizer.padding_side = "right"
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
@@ -81,11 +86,6 @@ class FineTuner:
             report_to="none",
             dataset_text_field="text",
             packing=True,
-            # TRL 0.23+ validates processing_class.eos_token against get_vocab().
-            # Unsloth sets a placeholder '<EOS_TOKEN>' that isn't in the vocab.
-            # Setting eos_token here makes TRL validate this value instead,
-            # bypassing the broken tokenizer attribute.
-            eos_token="<|im_end|>",
         )
 
         trainer = SFTTrainer(
