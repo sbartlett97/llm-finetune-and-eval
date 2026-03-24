@@ -88,6 +88,15 @@ class FineTuner:
             packing=True,
         )
 
+        # Unsloth patches SFTConfig to auto-populate eos_token from the tokenizer.
+        # The placeholder it sets ('<EOS_TOKEN>') is not in get_vocab(), which causes
+        # TRL 0.23+'s convert_tokens_to_ids check to return None and raise ValueError.
+        # Clearing it here lets TRL skip that validation; get_chat_template(map_eos_token=True)
+        # already set up the correct EOS token ID on the tokenizer.
+        if getattr(training_args, "eos_token", None) is not None:
+            logger.debug("Clearing SFTConfig.eos_token='%s' (unsloth placeholder)", training_args.eos_token)
+            training_args.eos_token = None
+
         trainer = SFTTrainer(
             model=model,
             args=training_args,
