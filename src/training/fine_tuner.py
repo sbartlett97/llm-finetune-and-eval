@@ -89,7 +89,6 @@ class FineTuner:
             train_dataset=self.train_dataset,
             eval_dataset=self.val_dataset,
             processing_class=tokenizer,
-            max_seq_length=tc.max_seq_length,
             callbacks=[TensorBoardStepCallback(self.tracker)],
         )
 
