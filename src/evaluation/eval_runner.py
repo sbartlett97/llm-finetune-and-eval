@@ -97,8 +97,8 @@ class EvalRunner:
         eval_indices = rng.sample(indices, min(self.config.num_samples, len(indices)))
         eval_subset = dataset.select(eval_indices)
 
-        questions = eval_subset["input"]
-        references = eval_subset["output"]
+        questions: list[str] = list(eval_subset["input"])
+        references: list[str] = list(eval_subset["output"])
 
         responses = _generate_responses(model, tokenizer, questions, self.config.batch_size)
 
