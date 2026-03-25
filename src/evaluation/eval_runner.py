@@ -1,5 +1,4 @@
 from __future__ import annotations
-import unsloth
 import dataclasses
 import logging
 import random
@@ -21,19 +20,41 @@ logger = logging.getLogger(__name__)
 
 
 def _load_model_and_tokenizer(model_path: str, max_seq_length: int) -> tuple:  # type: ignore[type-arg]
-    from unsloth import FastLanguageModel
+    from pathlib import Path
 
-    # Unsloth auto-detects LoRA adapters (adapter_config.json) and loads
-    # the base model + adapter in one call. 2x faster inference via for_inference().
-    model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=model_path,
-        max_seq_length=max_seq_length,
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+
+    # Load via standard HuggingFace/PEFT — not unsloth — so that unsloth's custom
+    # fast-inference forward patch is never applied. That patch breaks batched generation
+    # (RoPE cos shape mismatch) and is only suitable for the single-sequence serving path.
+    bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
-        dtype=None,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
     )
+
+    is_adapter = Path(model_path).is_dir() and (Path(model_path) / "adapter_config.json").exists()
+    if is_adapter:
+        from peft import AutoPeftModelForCausalLM
+        model = AutoPeftModelForCausalLM.from_pretrained(
+            model_path,
+            quantization_config=bnb_config,
+            device_map="auto",
+            torch_dtype=torch.bfloat16,
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            quantization_config=bnb_config,
+            device_map="auto",
+            torch_dtype=torch.bfloat16,
+        )
+
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
     tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "left"  # left-pad for batched generation: aligns RoPE positions
-    FastLanguageModel.for_inference(model)
+    tokenizer.padding_side = "left"  # left-pad so all sequences align for batched generation
     return model, tokenizer
 
 
