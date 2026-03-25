@@ -32,6 +32,7 @@ def _load_model_and_tokenizer(model_path: str, max_seq_length: int) -> tuple:  #
         dtype=None,
     )
     tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "left"  # left-pad for batched generation: aligns RoPE positions
     FastLanguageModel.for_inference(model)
     return model, tokenizer
 
