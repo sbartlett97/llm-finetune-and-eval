@@ -1,5 +1,5 @@
 run_name: run_lora_r16_2ep
-base_model: unsloth/SmolLM3-3B-128K
+base_model: unsloth/Qwen2.5-3B-Instruct
 output_dir: ./checkpoints/run_lora_r16_2ep
 
 lora:

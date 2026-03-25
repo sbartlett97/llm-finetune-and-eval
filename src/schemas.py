@@ -37,7 +37,7 @@ class TrainingConfig(BaseModel):
 
 class RunConfig(BaseModel):
     run_name: str
-    base_model: str = "unsloth/SmolLM3-3B-128K"
+    base_model: str = "unsloth/Qwen2.5-3B-Instruct"
     output_dir: str
     lora: LoraConfig = Field(default_factory=LoraConfig)
     training: TrainingConfig = Field(default_factory=TrainingConfig)
