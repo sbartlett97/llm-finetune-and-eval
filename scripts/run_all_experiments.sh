@@ -61,7 +61,7 @@ log "=== Baseline (no fine-tuning) ==="
 if is_done "eval_baseline"; then
     log "Skipping baseline eval (already done)"
 else
-    python scripts/eval.py --model-path unsloth/SmolLM3-3B-128K --run-name run_baseline \
+    python scripts/eval.py --model-path unsloth/Qwen2.5-3B-Instruct --run-name run_baseline \
         --eval-config "$EVAL_CONFIG" --data-config "$DATA_CONFIG"
     mark_done "eval_baseline"
 fi
