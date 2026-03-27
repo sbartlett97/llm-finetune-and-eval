@@ -1,0 +1,24 @@
+{
+  "run_id": "run_baseline",
+  "model_path": "unsloth/Qwen2.5-3B-Instruct",
+  "timestamp": "2026-03-25T11:32:21.514408+00:00",
+  "num_samples": 500,
+  "automated_metrics": {
+    "rouge_1": 0.24871380413685218,
+    "rouge_2": 0.028589103073284595,
+    "rouge_l": 0.11792617074673628,
+    "bertscore_f1": 0.8265653848648071,
+    "bleu_4": 0.18856221116219452
+  },
+  "judge_results": {
+    "clarity_mean": 4.96,
+    "clarity_std": 0.19694638556693236,
+    "medical_accuracy_mean": 4.72,
+    "medical_accuracy_std": 0.451260859854213,
+    "safety_mean": 5,
+    "safety_std": 0.0,
+    "num_samples": 100
+  },
+  "latency_results": null,
+  "regression_flags": []
+}

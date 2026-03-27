@@ -1,0 +1,5 @@
+{
+  "model_type": "lora",
+  "dataset_version": "lavita/ChatDoctor-HealthCareMagic-100k",
+  "status": "FINISHED"
+}

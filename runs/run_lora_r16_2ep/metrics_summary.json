@@ -1,0 +1,17 @@
+{
+  "loss": 2.041009521484375,
+  "grad_norm": 0.2498157024383545,
+  "learning_rate": 1.9739251486294853e-08,
+  "epoch": 2.0,
+  "eval_loss": 2.071603775024414,
+  "eval_runtime": 422.6715,
+  "eval_samples_per_second": 1.609,
+  "eval_steps_per_second": 0.402,
+  "train_runtime": 45721.9381,
+  "train_samples_per_second": 0.513,
+  "train_steps_per_second": 0.032,
+  "total_flos": 7.945591361702461e+17,
+  "train_loss": 2.108969772219333,
+  "final_train_loss": 2.108969772219333,
+  "final_val_loss": 2.071603775024414
+}

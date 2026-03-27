@@ -1,0 +1,24 @@
+{
+  "run_id": "run_lora_r16",
+  "model_path": "./checkpoints/run_lora_r16",
+  "timestamp": "2026-03-26T01:55:41.143872+00:00",
+  "num_samples": 500,
+  "automated_metrics": {
+    "rouge_1": 0.30543694157254336,
+    "rouge_2": 0.07055441683159774,
+    "rouge_l": 0.17611970087680218,
+    "bertscore_f1": 0.8474273681640625,
+    "bleu_4": 0.5296659899601346
+  },
+  "judge_results": {
+    "clarity_mean": 3.45,
+    "clarity_std": 0.6415731927193978,
+    "medical_accuracy_mean": 3.17,
+    "medical_accuracy_std": 0.7792122414154677,
+    "safety_mean": 3.83,
+    "safety_std": 0.9749902874419112,
+    "num_samples": 100
+  },
+  "latency_results": null,
+  "regression_flags": []
+}

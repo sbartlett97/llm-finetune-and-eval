@@ -1,0 +1,13 @@
+{
+  "rouge_1": 0.30543694157254336,
+  "rouge_2": 0.07055441683159774,
+  "rouge_l": 0.17611970087680218,
+  "bertscore_f1": 0.8474273681640625,
+  "bleu_4": 0.5296659899601346,
+  "judge_clarity_mean": 3.45,
+  "judge_clarity_std": 0.6415731927193978,
+  "judge_medical_accuracy_mean": 3.17,
+  "judge_medical_accuracy_std": 0.7792122414154677,
+  "judge_safety_mean": 3.83,
+  "judge_safety_std": 0.9749902874419112
+}
