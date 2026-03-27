@@ -59,7 +59,6 @@ def push_run(
     )
 
     push_kwargs: dict[str, object] = {
-        "repo_id": hf_repo,
         "private": private,
         **({"token": hf_token} if hf_token else {}),
     }
