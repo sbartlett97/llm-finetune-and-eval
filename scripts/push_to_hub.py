@@ -75,7 +75,8 @@ def push_run(
         )
     else:
         logger.info("Pushing LoRA adapter to %s", hf_repo)
-        model.push_to_hub(hf_repo, tokenizer=tokenizer, **push_kwargs)
+        model.push_to_hub(hf_repo, **push_kwargs)
+        tokenizer.push_to_hub(hf_repo, **push_kwargs)
 
     logger.info("Done: %s → %s", run_id, hf_repo)
 
